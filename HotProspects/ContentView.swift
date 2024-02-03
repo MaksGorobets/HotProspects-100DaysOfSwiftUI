@@ -8,14 +8,45 @@
 import SwiftUI
 
 struct ContentView: View {
+    
+    @State private var selectedTab = "StarView"
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        TabView(selection: $selectedTab) {
+            StarView()
+                .tabItem { Label("Star", systemImage: "star") }
+                .tag("StarView")
+            GlobeView()
+                .tabItem { Label("Globe", systemImage: "globe") }
+                .tag("GlobeView")
         }
-        .padding()
+    }
+}
+
+struct StarView: View {
+    var body: some View {
+        ZStack {
+            RadialGradient(colors: [.yellow, .white], center: .center, startRadius: 50, endRadius: 200)
+                .ignoresSafeArea()
+            VStack {
+                Image(systemName: "star.fill")
+                Text("Star")
+            }
+            .font(.system(size: 50))
+        }
+    }
+}
+
+struct GlobeView: View {
+    var body: some View {
+        ZStack {
+            RadialGradient(colors: [.blue, .white], center: .center, startRadius: 50, endRadius: 200)
+            VStack {
+                Image(systemName: "globe")
+                Text("Globe")
+            }
+            .font(.system(size: 50))
+        }
     }
 }
 
