@@ -37,8 +37,8 @@ struct ExampleView: View {
     
     let gradientColor: Color
     
-    let text: String
-    let image: String
+    @State var text = "Star"
+    @State var image = "star.fill"
     let buttonText: String
     let buttonValue: String
     
@@ -47,8 +47,13 @@ struct ExampleView: View {
             RadialGradient(colors: [gradientColor, .white], center: .center, startRadius: 50, endRadius: 200)
                 .ignoresSafeArea()
             VStack {
-                Image(systemName: image)
-                Text(text)
+                VStack {
+                    Image(systemName: image)
+                    Text(text)
+                }
+                .contextMenu {
+                    contextMenu
+                }
                 Button(buttonText) {
                     selectedTab = buttonValue
                 }
@@ -59,6 +64,23 @@ struct ExampleView: View {
             .font(.system(size: 50))
         }
         .preferredColorScheme(.light)
+    }
+    
+    var contextMenu: some View {
+        VStack {
+            Button("Star", systemImage: "star.fill") {
+                withAnimation {
+                    image = "star.fill"
+                    text = "Star"
+                }
+            }
+            Button("Globe", systemImage: "globe") {
+                withAnimation {
+                    image = "globe"
+                    text = "Globe"
+                }
+            }
+        }
     }
 }
 
