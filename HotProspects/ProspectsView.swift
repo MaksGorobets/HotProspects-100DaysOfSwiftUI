@@ -7,6 +7,7 @@
 
 import SwiftUI
 import SwiftData
+import CodeScanner
 
 struct ProspectsView: View {
     enum FilterOption {
@@ -14,6 +15,9 @@ struct ProspectsView: View {
     }
     @Environment(\.modelContext) var modelContext
     @Query(sort: \Prospect.name) var prospects: [Prospect]
+    @State private var selected = Set<Prospect>()
+    
+    @State private var isScanning = false
     
     let filter: FilterOption
     
@@ -30,7 +34,7 @@ struct ProspectsView: View {
     
     var body: some View {
         NavigationStack {
-            List {
+            List(selection: $selected) {
                 ForEach(prospects) { prospect in
                     HStack {
                         Image(systemName: "person.fill")
@@ -42,26 +46,68 @@ struct ProspectsView: View {
                             Text(prospect.email)
                                 .font(.subheadline)
                         }
-                        Spacer()
-                        Image(systemName:
-                                "checkmark.circle\(prospect.isContacted ? ".fill" : "")"
-                        )
-                        .onTapGesture {
-                            prospect.isContacted.toggle()
+                    }
+                    .tag(prospect)
+                    .swipeActions {
+                        Button("Delete", systemImage: "trash", role: .destructive) {
+                            modelContext.delete(prospect)
+                        }
+                        if prospect.isContacted == true {
+                            Button("Uncontacted", systemImage: "person.slash") {
+                                prospect.isContacted.toggle()
+                            }
+                            .tint(.orange)
+                        }
+                        if prospect.isContacted == false {
+                            Button("Contacted", systemImage: "person") {
+                                prospect.isContacted.toggle()
+                            }
+                            .tint(.blue)
                         }
                     }
                 }
-                .onDelete(perform: deleteProspect)
             }
             .toolbar {
-                Button {
-                    let prospect = Prospect(name: "Taylor Swift", email: "taylor@swift.com", isContacted: false)
-                    modelContext.insert(prospect)
-                } label: {
-                    Image(systemName: "plus")
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        isScanning.toggle()
+                    } label: {
+                        Image(systemName: "qrcode.viewfinder")
+                    }
+                }
+                
+                ToolbarItem(placement: .topBarLeading) {
+                    EditButton()
                 }
             }
+            .sheet(isPresented: $isScanning) {
+                CodeScannerView(codeTypes: [.qr], simulatedData: "Testing data\ntesting@gmail.com", completion: handleScan)
+            }
                 .navigationTitle(navigationTitle)
+            if !selected.isEmpty {
+                Button("Delete selected", action: deleteSelected)
+            }
+        }
+    }
+    
+    func deleteSelected() {
+        selected.forEach {
+            modelContext.delete($0)
+        }
+    }
+    
+    func handleScan(result: Result<ScanResult, ScanError>) {
+        isScanning = false
+        switch result {
+        case .success(let success):
+            let receivedString = success.string.components(separatedBy: "\n")
+            if receivedString.count == 2 {
+                let prospect = Prospect(name: receivedString[0], email: receivedString[1], isContacted: false)
+                
+                modelContext.insert(prospect)
+            }
+        case .failure(let failure):
+            print(failure.localizedDescription)
         }
     }
     
