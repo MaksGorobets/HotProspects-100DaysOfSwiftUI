@@ -18,6 +18,7 @@ struct MeView: View {
     
     @State private var qr: UIImage?
     @State private var qrSheet = false
+    @State private var qrImg = UIImage()
     
     var body: some View {
         VStack {
@@ -25,12 +26,15 @@ struct MeView: View {
             HStack {
                 Image(systemName: "person.crop.circle")
                     .font(.system(size: 120))
-                Image(uiImage: generateQR("\(name)\n\(emailAdress)"))
+                Image(uiImage: qrImg)
                     .interpolation(.none)
                     .resizable()
                     .frame(width: 100, height: 100)
                     .onTapGesture {
                         qrSheet.toggle()
+                    }
+                    .contextMenu {
+                        ShareLink(item: Image(uiImage: qrImg), preview: SharePreview("My QR code in HotProspects!", image: Image( uiImage: qrImg)))
                     }
             }
             VStack {
@@ -52,11 +56,14 @@ struct MeView: View {
             Spacer()
             Spacer()
         }
+        .onAppear(perform: updateImage)
+        .onChange(of: name, updateImage)
+        .onChange(of: emailAdress, updateImage)
     }
     
     var sheetView: some View {
         VStack {
-            Image(uiImage: generateQR("\(name)\n\(emailAdress)"))
+            Image(uiImage: qrImg)
                 .interpolation(.none)
                 .resizable()
                 .scaledToFit()
@@ -69,14 +76,19 @@ struct MeView: View {
         }
     }
     
-    func generateQR(_ string: String) -> UIImage {
+    func updateImage() {
+        generateQR("\(name)\n\(emailAdress)")
+    }
+    
+    func generateQR(_ string: String) {
         filter.message = Data(string.utf8)
         if let ciImage = filter.outputImage {
             if let cgImage = context.createCGImage(ciImage, from: ciImage.extent) {
-                return UIImage(cgImage: cgImage)
+                qrImg = UIImage(cgImage: cgImage)
             }
+        } else {
+            qrImg = UIImage(systemName: "xmark.circle") ?? UIImage()
         }
-        return UIImage(systemName: "xmark.circle") ?? UIImage()
     }
     
     

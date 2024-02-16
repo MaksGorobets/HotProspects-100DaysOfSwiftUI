@@ -8,16 +8,22 @@
 import SwiftUI
 import SwiftData
 import CodeScanner
+import UserNotifications
 
 struct ProspectsView: View {
     enum FilterOption {
         case none, contacted, uncontacted
     }
     @Environment(\.modelContext) var modelContext
+    @Environment(\.dismiss) var dismiss
     @Query(sort: \Prospect.name) var prospects: [Prospect]
     @State private var selected = Set<Prospect>()
     
     @State private var isScanning = false
+    
+    @State private var isShowingAlert = false
+    @State private var selectedProspect: Prospect?
+    @State private var date = Date()
     
     let filter: FilterOption
     
@@ -59,10 +65,15 @@ struct ProspectsView: View {
                             .tint(.orange)
                         }
                         if prospect.isContacted == false {
+                            Button("Notify", systemImage: "bell.fill") {
+                                isShowingAlert = true
+                                selectedProspect = prospect
+                            }
+                            .tint(.blue)
                             Button("Contacted", systemImage: "person") {
                                 prospect.isContacted.toggle()
                             }
-                            .tint(.blue)
+                            .tint(.green)
                         }
                     }
                 }
@@ -80,13 +91,95 @@ struct ProspectsView: View {
                     EditButton()
                 }
             }
+            .sheet(isPresented: $isShowingAlert) {
+                NavigationStack {
+                    VStack {
+                        Spacer()
+                        DatePicker("Pick a time", selection: $date)
+                        Spacer()
+                        Spacer()
+                        HStack {
+                            Button {
+                                isShowingAlert = false
+                            } label: {
+                                Text("Cancel")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            Button {
+                                print("Clicked")
+                                isShowingAlert = false
+                                notify(for: selectedProspect!)
+                                dismiss()
+                            } label: {
+                                Text("OK")
+                                    .frame(maxWidth: .infinity)
+                            }
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    .padding()
+                    .navigationTitle("Pick time")
+                    .navigationBarTitleDisplayMode(.inline)
+                }
+                .presentationDetents([.medium])
+            }
             .sheet(isPresented: $isScanning) {
-                CodeScannerView(codeTypes: [.qr], simulatedData: "Testing data\ntesting@gmail.com", completion: handleScan)
+                CodeScannerView(codeTypes: [.qr], simulatedData: "Testing data \(Int.random(in: 0...100))\ntesting@gmail.com", completion: handleScan)
             }
                 .navigationTitle(navigationTitle)
-            if !selected.isEmpty {
-                Button("Delete selected", action: deleteSelected)
+                .safeAreaInset(edge: .bottom, alignment: .center) {
+                    if !selected.isEmpty {
+                        Button("Delete selected", systemImage: "trash", action: deleteSelected)
+                            .buttonStyle(.borderedProminent)
+                            .clipShape(.capsule)
+                            .tint(.purple)
+                            .padding()
+                    }
+                }
+        }
+    }
+    
+    func notify(for prospect: Prospect) {
+        let center = UNUserNotificationCenter.current()
+        
+        let addRequest = {
+            let content = UNMutableNotificationContent()
+            content.title = "Contact \(prospect.name)"
+            content.body = prospect.email
+            content.sound = UNNotificationSound.default
+            
+            let componentsDate = Calendar.current.dateComponents([.minute, .hour, .day], from: date)
+            
+            let trigger = UNCalendarNotificationTrigger(dateMatching: componentsDate, repeats: false)
+            
+            let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+            center.add(request)
+        }
+        center.getNotificationSettings { setting in
+            if setting.authorizationStatus == .authorized {
+                addRequest()
+            } else {
+                center.requestAuthorization(options: [.alert, .badge, .sound]) { success, error in
+                    if success {
+                        addRequest()
+                    } else if let error{
+                        print(error.localizedDescription)
+                    }
+                }
             }
+        }
+        
+    }
+    
+    init(filter: FilterOption) {
+        self.filter = filter
+        
+        if filter != .none {
+            let showContactedOnly = filter == .contacted
+            
+            _prospects = Query(filter: #Predicate {
+                $0.isContacted == showContactedOnly
+            })
         }
     }
     
@@ -108,18 +201,6 @@ struct ProspectsView: View {
             }
         case .failure(let failure):
             print(failure.localizedDescription)
-        }
-    }
-    
-    init(filter: FilterOption) {
-        self.filter = filter
-        
-        if filter != .none {
-            let showContactedOnly = filter == .contacted
-            
-            _prospects = Query(filter: #Predicate {
-                $0.isContacted == showContactedOnly
-            })
         }
     }
     
