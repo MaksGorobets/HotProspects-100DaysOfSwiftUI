@@ -9,8 +9,8 @@ import SwiftData
 
 @Model
 class Prospect {
-    let name: String
-    let email: String
+    var name: String
+    var email: String
     var isContacted: Bool
     
     init(name: String, email: String, isContacted: Bool) {

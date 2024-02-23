@@ -17,6 +17,15 @@ struct ProspectsView: View {
     @Environment(\.modelContext) var modelContext
     @Environment(\.dismiss) var dismiss
     @Query(sort: \Prospect.name) var prospects: [Prospect]
+    private var sortedProspects: [Prospect] {
+        if currentSort == "Name" {
+            return prospects.sorted { prospect, prospect in
+                prospect.name == prospect.name
+            }.reversed()
+        } else {
+            return prospects.reversed()
+        }
+    }
     @State private var selected = Set<Prospect>()
     
     @State private var isScanning = false
@@ -24,6 +33,9 @@ struct ProspectsView: View {
     @State private var isShowingAlert = false
     @State private var selectedProspect: Prospect?
     @State private var date = Date()
+    
+    let sortBy = ["Name", "Date added"]
+    @State private var currentSort = "Date added"
     
     let filter: FilterOption
     
@@ -41,9 +53,16 @@ struct ProspectsView: View {
     var body: some View {
         NavigationStack {
             List(selection: $selected) {
-                ForEach(prospects) { prospect in
+                HStack {
+                    Picker("Sort by:", selection: $currentSort) {
+                        ForEach(sortBy, id: \.self) {
+                            Text($0)
+                        }
+                    }
+                }
+                ForEach(sortedProspects) { prospect in
                     HStack {
-                        Image(systemName: "person.fill")
+                        Image(systemName: prospect.isContacted ? "person.fill.checkmark" : "person.fill.xmark")
                             .font(.system(size: 30))
                             .padding(.horizontal, 5)
                         VStack(alignment: .leading) {
@@ -54,15 +73,23 @@ struct ProspectsView: View {
                         }
                     }
                     .tag(prospect)
-                    .swipeActions {
-                        Button("Delete", systemImage: "trash", role: .destructive) {
-                            modelContext.delete(prospect)
+                    .swipeActions(edge: .leading) {
+                        if prospect.isContacted == false {
+                            Button("Contacted", systemImage: "person") {
+                                prospect.isContacted.toggle()
+                            }
+                            .tint(.green)
                         }
                         if prospect.isContacted == true {
                             Button("Uncontacted", systemImage: "person.slash") {
                                 prospect.isContacted.toggle()
                             }
-                            .tint(.orange)
+                            .tint(.yellow)
+                        }
+                    }
+                    .swipeActions {
+                        Button("Delete", systemImage: "trash", role: .destructive) {
+                            modelContext.delete(prospect)
                         }
                         if prospect.isContacted == false {
                             Button("Notify", systemImage: "bell.fill") {
@@ -70,11 +97,14 @@ struct ProspectsView: View {
                                 selectedProspect = prospect
                             }
                             .tint(.blue)
-                            Button("Contacted", systemImage: "person") {
-                                prospect.isContacted.toggle()
-                            }
-                            .tint(.green)
                         }
+                        NavigationLink {
+                            ProspectEditingView(prospect: prospect)
+                        } label: {
+                            Image(systemName: "pencil")
+                            Text("Edit")
+                        }
+                        .tint(.orange)
                     }
                 }
             }
@@ -129,11 +159,24 @@ struct ProspectsView: View {
                 .navigationTitle(navigationTitle)
                 .safeAreaInset(edge: .bottom, alignment: .center) {
                     if !selected.isEmpty {
-                        Button("Delete selected", systemImage: "trash", action: deleteSelected)
-                            .buttonStyle(.borderedProminent)
-                            .clipShape(.capsule)
-                            .tint(.purple)
-                            .padding()
+                        HStack(spacing: 1) {
+                            Button("Delete selected", systemImage: "trash", action: deleteSelected)
+                                .buttonStyle(.borderedProminent)
+                                .clipShape(.capsule)
+                                .tint(.purple)
+                                .padding()
+                            Button {
+                                selected.removeAll()
+                            } label: {
+                                Circle()
+                                    .tint(.blue)
+                                    .overlay (
+                                        Image(systemName: "x.circle")
+                                            .tint(.white)
+                                    )
+                            }
+                            .frame(width: 35, height: 35)
+                        }
                     }
                 }
         }

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E9208DB42B89397000552D60 /* ProspectEditingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E9208DB32B89397000552D60 /* ProspectEditingView.swift */; };
 		E92CF70E2B7C0C10001DDACA /* EndEditing.swift in Sources */ = {isa = PBXBuildFile; fileRef = E92CF70D2B7C0C10001DDACA /* EndEditing.swift */; };
 		E96664B72B6E85AF00E22828 /* HotProspectsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = E96664B62B6E85AF00E22828 /* HotProspectsApp.swift */; };
 		E96664B92B6E85AF00E22828 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E96664B82B6E85AF00E22828 /* ContentView.swift */; };
@@ -20,6 +21,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		E9208DB32B89397000552D60 /* ProspectEditingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProspectEditingView.swift; sourceTree = "<group>"; };
 		E92CF70D2B7C0C10001DDACA /* EndEditing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EndEditing.swift; sourceTree = "<group>"; };
 		E96664B32B6E85AF00E22828 /* HotProspects.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HotProspects.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E96664B62B6E85AF00E22828 /* HotProspectsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotProspectsApp.swift; sourceTree = "<group>"; };
@@ -69,6 +71,7 @@
 				E98F79B42B7571FF0030F135 /* TabsView.swift */,
 				E98F79B62B7572780030F135 /* ProspectsView.swift */,
 				E98F79B82B7572860030F135 /* MeView.swift */,
+				E9208DB32B89397000552D60 /* ProspectEditingView.swift */,
 				E92CF70D2B7C0C10001DDACA /* EndEditing.swift */,
 				E96664BA2B6E85B000E22828 /* Assets.xcassets */,
 				E96664BC2B6E85B000E22828 /* Preview Content */,
@@ -163,6 +166,7 @@
 				E92CF70E2B7C0C10001DDACA /* EndEditing.swift in Sources */,
 				E98F79B72B7572780030F135 /* ProspectsView.swift in Sources */,
 				E98F79BD2B75770B0030F135 /* Prospect.swift in Sources */,
+				E9208DB42B89397000552D60 /* ProspectEditingView.swift in Sources */,
 				E98F79B52B7571FF0030F135 /* TabsView.swift in Sources */,
 				E96664B92B6E85AF00E22828 /* ContentView.swift in Sources */,
 				E96664B72B6E85AF00E22828 /* HotProspectsApp.swift in Sources */,
